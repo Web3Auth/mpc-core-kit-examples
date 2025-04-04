@@ -17,9 +17,9 @@ class Web3AuthSFA {
     // IMP START - Initialize Web3Auth SFA
     await singleFactorAuthFlutter.init(
       Web3AuthOptions(
-        network: Web3AuthNetwork.mainnet,
+        network: Web3AuthNetwork.sapphire_mainnet,
         clientId:
-            "BJRZ6qdDTbj6Vd5YXvV994TYCqY42-PxldCetmvGTUdoq6pkCqdpuC1DIehz76zuYdaq1RJkXGHuDraHRhCQHvA",
+            "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ",
         redirectUrl: 'com.example.sfa_flutter_quick_start',
       ),
     );
