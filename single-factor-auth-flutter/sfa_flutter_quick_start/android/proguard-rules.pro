@@ -50,3 +50,18 @@
 -keepattributes *Annotation*
 -keepattributes EnclosingMethod
 -keepattributes InnerClasses
+
+-keep class org.bouncycastle.** { *; }
+-keepnames class org.bouncycastle.** { *; }
+-keep class net.i2p.crypto.eddsa.** { *; } # If your SDK uses EdDSA
+-keepnames class net.i2p.crypto.eddsa.** { *; }
+-keep class org.conscrypt.** { *; } # Another common security provider
+-keepnames class org.conscrypt.** { *; }
+-keep class javax.net.ssl.* { *; }
+-keepnames class javax.net.ssl.* { *; }
+-keep class java.security.* { *; }
+-keepnames class java.security.* { *; }
+-keep class java.security.Provider {
+    public <init>(java.lang.String, double, java.lang.String);
+}
+-keep class * extends java.security.Provider

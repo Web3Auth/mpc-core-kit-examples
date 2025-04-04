@@ -22,7 +22,7 @@ dependencies:
   single_factor_auth_flutter:
     git: 
       url: https://github.com/Web3Auth/single-factor-auth-flutter.git
-      ref: feat/wallet-services_integration
+      ref: ee3118e66e2056e70ed88074394363683ae3c613
   get_it: ^7.6.7
   # // IMP END - Installation
 
