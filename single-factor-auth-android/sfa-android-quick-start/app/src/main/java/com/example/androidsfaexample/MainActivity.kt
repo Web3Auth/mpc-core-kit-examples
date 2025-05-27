@@ -2,9 +2,12 @@
 
 package com.example.androidsfaexample
 
+// IMP START - Auth Provider Login
+// IMP END - Auth Provider Login
+// IMP START - Quick Start
+// IMP END - Quick Start
 import android.content.ContentValues.TAG
 import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -13,30 +16,29 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.auth0.android.jwt.JWT
-// IMP START - Auth Provider Login
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
-// IMP END - Auth Provider Login
 import com.google.gson.Gson
 import com.google.gson.JsonArray
-// IMP START - Quick Start
-import com.web3auth.singlefactorauth.SingleFactorAuth
-import com.web3auth.singlefactorauth.types.ChainConfig
-import com.web3auth.singlefactorauth.types.ChainNamespace
-import com.web3auth.singlefactorauth.types.LoginParams
-import com.web3auth.singlefactorauth.types.SessionData
-import com.web3auth.singlefactorauth.types.Web3AuthOptions
+import com.web3auth.core.Web3Auth
+import com.web3auth.core.types.AuthConnection
+import com.web3auth.core.types.BuildEnv
+import com.web3auth.core.types.LoginParams
+import com.web3auth.core.types.Web3AuthOptions
+import com.web3auth.core.types.Web3AuthResponse
 import org.torusresearch.fetchnodedetails.types.Web3AuthNetwork
-// IMP END - Quick Start
+import org.torusresearch.torusutils.types.SessionData
+import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ExecutionException
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var singleFactorAuth: SingleFactorAuth
     private lateinit var web3AuthOptions: Web3AuthOptions
     private lateinit var loginParams: LoginParams
     private var torusKey: String? = null
     private var sessionData: SessionData? = null
+    private lateinit var web3Auth: Web3Auth
+
     // IMP START - Auth Provider Login
     private lateinit var auth: FirebaseAuth
     // IMP END - Auth Provider Login
@@ -49,13 +51,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         // IMP START - Initialize Web3Auth SFA
         web3AuthOptions = Web3AuthOptions(
-            "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ",
-            Web3AuthNetwork.SAPPHIRE_MAINNET,
-            redirectUrl = Uri.parse("w3a://com.example.androidsfaexample")
+            clientId = "BPi5PB_UiIZ-cPz1GtV5i1I2iOSOHuimiXBI0e-Oe_u6X3oVAbCiAZOTEBtTXw4tsluTITPqA8zMsfxIKMjiqNQ",
+            web3AuthNetwork = Web3AuthNetwork.SAPPHIRE_MAINNET,
+            authBuildEnv = BuildEnv.TESTING,
+            defaultChainId = "0x1",
+            redirectUrl = "w3a://com.example.androidsfaexample"
         )
 
         val context: Context = this.applicationContext
-        singleFactorAuth = SingleFactorAuth(web3AuthOptions, this)
+        web3Auth = Web3Auth(
+            web3AuthOptions, this
+        )
         // IMP END - Initialize Web3Auth SFA
 
 
@@ -71,42 +77,30 @@ class MainActivity : AppCompatActivity() {
 
         val showWalletUIButton = findViewById<Button>(R.id.showWalletUI)
         showWalletUIButton.setOnClickListener { showWalletUI() }
-        val torusKeyCF = singleFactorAuth.initialize(this.applicationContext)
-        Log.i("Is connected",singleFactorAuth.isConnected().toString())
+        val torusKeyCF = web3Auth.initialize()
         torusKeyCF.whenComplete { _, error ->
             if (error != null) {
                 Log.e("Initialize Error", error.toString())
-            } else  {
-                this.sessionData = singleFactorAuth.getSessionData()
-                if(this.sessionData == null) {
-                    Log.i("Session", "No active session found")
-                } else {
-                    torusKey = sessionData!!.privateKey
-                    publicAddress = sessionData!!.publicAddress
-                    Log.i("Private Key", torusKey!!.trimIndent())
-                    Log.i("User Info", sessionData!!.userInfo.toString())
-                    reRender()
-                }
-
+            } else {
+                reRender()
+                Log.i("PrivKey: ", web3Auth.getPrivateKey())
+                Log.i("Web3Auth UserInfo", web3Auth.getUserInfo().toString())
             }
         }
+        //Log.i("Is connected",singleFactorAuth.isConnected().toString())
 
         reRender()
     }
 
     private fun requestMethod() {
-        val chainConfig = ChainConfig(
-            chainNamespace = ChainNamespace.EIP155,
-            chainId = "0x1",
-            rpcTarget = "https://rpc.ankr.com/eth"
-        )
-
+        val credentials: org.web3j.crypto.Credentials =
+            org.web3j.crypto.Credentials.create(web3Auth.getPrivateKey())
         val params = JsonArray().apply {
             add("Hello, World!")
-            add(sessionData!!.publicAddress)
+            add(credentials.address)
         }
 
-        val signMsgCompletableFuture = singleFactorAuth.request(chainConfig, "personal_sign", params)
+        val signMsgCompletableFuture = web3Auth.request("personal_sign", requestParams = params)
 
         signMsgCompletableFuture.whenComplete { signResult, error ->
             if (error == null) {
@@ -119,15 +113,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showWalletUI() {
-        val chainConfig = ChainConfig(
-            chainNamespace = ChainNamespace.EIP155,
-            chainId = "0x1",
-            rpcTarget = "https://rpc.ankr.com/eth"
-        )
 
-        val launchWalletCompletableFuture = singleFactorAuth.showWalletUI(
-            chainConfig
-        )
+        val launchWalletCompletableFuture = web3Auth.showWalletUI()
         launchWalletCompletableFuture.whenComplete { _, error ->
             if (error == null) {
                 Log.d("MainActivity_Web3Auth", "Wallet launched successfully")
@@ -159,28 +146,46 @@ class MainActivity : AppCompatActivity() {
                             val sub = jwt.getClaim("sub").asString() //get sub claims
                             Log.d(TAG, "sub = $sub")
                             // IMP START - Verifier Creation
+
                             loginParams =
-                                LoginParams("w3a-firebase-demo", "$sub", "$idToken")
+                                LoginParams(
+                                    authConnection = AuthConnection.GOOGLE,
+                                    authConnectionId = "w3a-firebase-demo",
+                                    idToken = "$idToken"
+                                )
+                            val loginCompletableFuture: CompletableFuture<Web3AuthResponse> =
+                                web3Auth.connectTo(
+                                    loginParams, ctx = this
+                                )
                             // IMP END - Verifier Creation
                             try {
                                 // IMP START - Get Key
-                                sessionData = singleFactorAuth.connect(
-                                    loginParams,
-                                    this.applicationContext,
-                                )
+                                loginCompletableFuture.whenComplete { _, error ->
+                                    if (error == null) {
+                                        Log.i("PrivKey: ", web3Auth.getPrivateKey())
+                                        Log.i(
+                                            "Web3Auth UserInfo",
+                                            web3Auth.getUserInfo().toString()
+                                        )
+                                        reRender()
+                                    } else {
+                                        Log.d(
+                                            "MainActivity_Web3Auth",
+                                            error.message ?: "Something went wrong"
+                                        )
+                                    }
+                                }
                                 // IMP END - Get Key
                             } catch (e: ExecutionException) {
                                 e.printStackTrace()
                             } catch (e: InterruptedException) {
                                 e.printStackTrace()
                             }
-                            torusKey = sessionData!!.privateKey
-                            publicAddress = sessionData!!.publicAddress
-                            Log.i("Private Key:", torusKey!!.trimIndent())
-                            Log.i("Public Address:", publicAddress.trimIndent())
-                            Log.i("User Info", sessionData!!.userInfo.toString())
-                            println(sessionData!!.signatures)
-                            reRender()
+                            //Log.i("Private Key:", torusKey!!.trimIndent())
+                            //Log.i("Public Address:", publicAddress.trimIndent())
+                            //Log.i("User Info", sessionData!!.userInfo.toString())
+                            //println(sessionData!!.signatures)
+                            //reRender()
                         }
                     }
                 } else {
@@ -198,9 +203,12 @@ class MainActivity : AppCompatActivity() {
         publicAddress = ""
         Firebase.auth.signOut()
         try {
-            val logoutCF = singleFactorAuth.logout(context)
-            logoutCF.get()
-            reRender()
+            val logoutCF = web3Auth.logout()
+            logoutCF.whenComplete { t, u ->
+                reRender()
+            }
+            //logoutCF.get()
+            //reRender()
         } catch (error: Exception) {
             Log.e("Logout Error", error.toString());
         }
@@ -213,7 +221,7 @@ class MainActivity : AppCompatActivity() {
         val showWalletUIButton = findViewById<Button>(R.id.showWalletUI)
         val requestButton = findViewById<Button>(R.id.requestButton)
 
-        if (publicAddress.isNotEmpty()) {
+        if (web3Auth.getPrivateKey().isNotEmpty()) {
             contentTextView.text = gson.toJson(publicAddress)
             contentTextView.visibility = View.VISIBLE
             signInButton.visibility = View.GONE
