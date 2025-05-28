@@ -107,6 +107,12 @@ class _HomePageState extends State<HomePage> {
               ),
               ElevatedButton(
                 onPressed: () {
+                  web3authSFA.connected();
+                },
+                child: const Text('isConnected State'),
+              ),
+              ElevatedButton(
+                onPressed: () {
                   // Use the AuthService class to handle sign out
                   firebaseHelper.signOut(context);
                 },

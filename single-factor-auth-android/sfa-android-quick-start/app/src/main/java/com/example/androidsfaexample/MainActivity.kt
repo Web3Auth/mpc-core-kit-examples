@@ -55,6 +55,7 @@ class MainActivity : AppCompatActivity() {
             web3AuthNetwork = Web3AuthNetwork.SAPPHIRE_MAINNET,
             authBuildEnv = BuildEnv.TESTING,
             defaultChainId = "0x1",
+            sessionNamespace = "sfa",
             redirectUrl = "w3a://com.example.androidsfaexample"
         )
 

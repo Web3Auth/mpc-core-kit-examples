@@ -38,6 +38,17 @@ class Web3AuthSFA {
     }
   }
 
+  Future<void> connected() async {
+    try {
+      final isConnected = await singleFactorAuthFlutter.connected();
+      log('isConnected: $isConnected');
+      final isConnected_1 = await singleFactorAuthFlutter.connected();
+      log('isConnected_1: $isConnected_1');
+    } catch (e) {
+      log("Error connecting SFA: $e");
+    }
+  }
+
   Future<void> showWalletUI() async {
     try {
       final chainConfig = ChainConfig(
