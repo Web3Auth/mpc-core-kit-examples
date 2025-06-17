@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity() {
                                 )
                             val loginCompletableFuture: CompletableFuture<Web3AuthResponse> =
                                 web3Auth.connectTo(
-                                    loginParams, ctx = this
+                                    loginParams
                                 )
                             // IMP END - Verifier Creation
                             try {
