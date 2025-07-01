@@ -40,7 +40,7 @@ android {
 
 dependencies {
     // IMP START - Installation
-    implementation 'com.github.grvgoel81:web3auth-android-sdk:2.0.0.5'
+    implementation 'com.github.grvgoel81:web3auth-android-sdk:3.0.0.1'
     implementation 'org.web3j:core:4.8.8-android'
     // IMP END - Installation
     implementation platform('com.google.firebase:firebase-bom:31.0.2')
