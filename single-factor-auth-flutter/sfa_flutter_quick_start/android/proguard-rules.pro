@@ -65,3 +65,6 @@
     public <init>(java.lang.String, double, java.lang.String);
 }
 -keep class * extends java.security.Provider
+
+-keep class com.web3auth.session_manager_android.**
+-dontwarn javax.annotation.**

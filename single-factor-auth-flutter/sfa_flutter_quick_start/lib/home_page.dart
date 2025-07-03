@@ -62,7 +62,7 @@ class _HomePageState extends State<HomePage> {
                     case ConnectionState.done:
                       if (snapshot.hasError) {
                         log(snapshot.error.toString());
-                        return Text('Error: ${snapshot.error}');
+                        return const Text('');
                       }
 
                       final String privateKey = snapshot.data!.privateKey;
@@ -110,6 +110,12 @@ class _HomePageState extends State<HomePage> {
                   web3authSFA.connected();
                 },
                 child: const Text('isConnected State'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  web3authSFA.getSessionData();
+                },
+                child: const Text('Get Session data'),
               ),
               ElevatedButton(
                 onPressed: () {
